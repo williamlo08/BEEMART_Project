@@ -1,0 +1,691 @@
+
+:root{
+    --blue: #1d83d4;
+    --hoverBlue: #005499;
+    --redLogout: #f84131;
+    --redLogoutHover: #a0291f;
+}
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/*login and register*/
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e4f2fd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: white;
+    padding: 30px;
+    width: 70vh;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-top: 6px solid #1d83d4;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: var(--blue);
+    font-size: 28px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+form h4 {
+    margin-bottom: 3px;
+}
+
+label {
+    font-weight: bold;
+    
+}
+
+input, select {
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid var(--blue);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--blue);
+}
+
+button {
+    padding: 12px;
+    background-color: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 18px;
+}
+
+button:hover {
+    background-color: var(--hoverBlue);
+}
+
+form p {
+    color: var(--blue);
+    text-align: center;
+    font-size: 14px;
+}
+form a {
+    text-decoration: none;
+    color: var(--blue);
+}
+form a:hover{
+    color: var(--hoverBlue);
+}
+
+/*Cashier & admin*/
+.cashier-page {
+    display: block;
+    min-width: 100vh;
+    background-color: #e4f2fd;
+    
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+    background-color:var(--blue);    
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 26px;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--blue);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+#tanggal {
+    color: white;
+    font-size: 15px;
+}
+
+.logout-btn {
+    background-color: var(--redLogout);
+    color: white;
+    padding: 10px 22px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.logout-btn:hover {
+    background-color: var(--redLogoutHover);
+}
+
+.kotak {
+    background-color: white;
+    margin: 30px auto;
+    padding: 25px 30px;
+    width: 90%;
+    max-width: 850px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.tab-switch {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--blue);
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    background-color: #e4f2fd;
+    color: var(--blue);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 0;
+    transition: 0.3s;
+}
+
+.tab-btn.active,
+.tab-btn:hover {
+    background-color: var(--blue);
+    color: white;
+}
+
+.invoice-row {
+    justify-content: space-between;
+    align-items: center;
+    background-color: #e4f2fd;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.invoice-label {
+    font-weight: bold;
+}
+
+
+.search-row input {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.produk-list {
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.produk-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--blue);
+}
+
+.produk-item:last-child {
+    border-bottom: none;
+}
+
+.produk-item .nama {
+    font-weight: bold;
+    
+}
+
+.produk-item .harga {
+    color: var(--blue);
+    font-size: 13px;
+    margin-left: 10px;
+}
+
+.produk-item button {
+    margin-bottom: 0;
+    padding: 6px 14px;
+    font-size: 13px;
+    background-color: var(--blue);
+}
+
+.daftar-belanja {
+    margin-bottom: 15px;
+}
+
+.daftar-belanja h4 {
+    margin-bottom: 10px;
+    
+}
+
+.cart-list {
+    border: 1px solid #e4f2fd;
+    border-radius: 8px;
+    min-height: 60px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed #dceaf5;
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.cart-item .info {
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-item .info .nama {
+    font-weight: bold;
+    
+}
+
+.cart-item .info .qty {
+    font-size: 12px;
+    color: var(--blue);
+}
+
+.cart-item .hapus-btn {
+    background-color: var(--redLogout);
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-bottom: 0;
+}
+
+.cart-item .hapus-btn:hover {
+    background-color: var(--redLogoutHover);
+}
+
+.empty-cart {
+    color: #999;
+    font-size: 13px;
+    text-align: center;
+    padding: 10px 0;
+}
+
+.total-row {
+    display: flex;
+    align-items: right;
+    justify-content: flex-end;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    gap: 5px;
+}
+
+.total-row #totalHarga {
+    color: var(--blue);
+}
+
+.bayar-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    margin-bottom: 0;
+}
+
+.history-item {
+    padding: 10px 0;
+    border-bottom: 1px dashed #dceaf5;
+    font-size: 14px;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-item .inv {
+    font-weight: bold;
+    color: var(--blue);
+    font-family: monospace;
+}
+
+.history-item .detail {
+    color: #555;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.history-item .total {
+    font-weight: bold;
+    
+}
+
+button.btn-pilih {
+    padding: 6px 10px;
+    background-color: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: -1px;
+}
+
+.panel-pilih {
+    margin-bottom: 20px;
+}
+
+.panel-pilih-inner {
+    background-color: #e4f2fd;
+    border: 1px solid var(--blue);
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 14px;
+}
+
+.panel-atas {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.panel-bawah {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.panel-kiri,
+.panel-stock-kolom {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;           
+}
+
+.panel-harga,
+.panel-stock {
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.panel-kanan {
+    display: flex;
+    align-items: center;
+    margin-left: auto;  
+    padding-top: 0;    
+}
+
+.panel-qty-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+.input-qty {
+    width: 70px;
+    padding: 6px 8px;
+    border: 1px solid var(--blue);
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 0;
+}
+
+.btn-masukkan {
+    padding: 6px 12px;
+    font-size: 13px;
+    background-color: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.btn-masukkan:hover {
+    background-color: var(--hoverBlue);
+}
+button.hapus-btn {
+    padding: 6px 10px;
+    background-color: var(--redLogout);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: -1px;
+}
+
+.btn-masukkan:hover {
+    background-color: var(--hoverBlue);
+}
+
+.panel-nilai {
+    font-weight: bold;
+}
+
+.metode-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.metode-label {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.metode-select {
+    padding: 8px 70px 8px 10px;
+    border: 1px solid var(--blue);
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 0;
+    background-color: white;
+    cursor: pointer;
+    text-align: left;
+}
+
+/* ===== History Transaction ===== */
+.history-header {
+    margin-bottom: 15px;
+}
+
+.history-title {
+    font-style: italic;
+    font-size: 15px;
+    margin-bottom: 10px;
+    color: #999;
+}
+
+.history-kasir {
+    font-weight: bold;
+    color: var(--blue);
+    font-size: 13px;
+}
+
+.history-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.history-filter-label {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.history-date-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.history-date-input {
+    padding: 8px 34px 8px 10px;
+    border: 1px solid var(--blue);
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 0;
+    width: 150px;
+}
+
+.history-date-picker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.history-cal-icon {
+    position: absolute;
+    right: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    user-select: none;
+}
+
+.history-cari-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    background-color: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.history-cari-btn:hover {
+    background-color: var(--hoverBlue);
+}
+
+.history-table-wrap {
+    overflow: hidden;
+}
+
+/* ===== Pagination History ===== */
+.history-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.history-pagination button {
+    padding: 6px 12px;
+    font-size: 14px;
+    background-color: #e4f2fd;
+    color: var(--blue);
+    border: 1px solid var(--blue);
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.history-pagination button:hover {
+    background-color: var(--blue);
+    color: white;
+}
+
+.history-pagination button.active {
+    background-color: var(--blue);
+    color: white;
+}
+
+.history-pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===== Dropdown "..." pagination ===== */
+.page-more {
+    position: relative;
+    display: inline-block;
+}
+
+.page-more-menu {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 6px;
+    background-color: white;
+    border: 1px solid var(--blue);
+    border-radius: 6px;
+    padding: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 50;
+    max-height: 220px;
+    overflow-y: auto;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: max-content;
+    max-width: 220px;
+}
+
+.page-more-menu.show {
+    display: flex;
+}
+
+.page-more-menu button {
+    padding: 6px 10px;
+    font-size: 13px;
+    background-color: #e4f2fd;
+    color: var(--blue);
+    border: 1px solid var(--blue);
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.page-more-menu button:hover {
+    background-color: var(--blue);
+    color: white;
+}
+
+.page-more-menu button.active {
+    background-color: var(--blue);
+    color: white;
+}
+
+.page-more-btn {
+    padding: 6px 12px;
+    font-size: 14px;
+    background-color: #e4f2fd;
+    color: var(--blue);
+    border: 1px solid var(--blue);
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.page-more-btn:hover {
+    background-color: var(--blue);
+    color: white;
+}

@@ -1,0 +1,9 @@
+# .NET Core Build & Files
+bin/
+obj/
+*.user
+.vs/
+
+# System Files
+.DS_Store
+Thumbs.db

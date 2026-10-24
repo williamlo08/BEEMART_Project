@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>BeeMart/Register</title>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Register Akun</h1>
+
+        <form id="loginForm">
+            <h4>Username</h4>
+            <input type="text" id="username" required>
+
+            <h4>Full Name</h4>
+            <input type="text" id="full_name" required>
+            
+            <h4>Password</h4>
+            <input type="password" id="password" required>
+            
+            <h4>Re-Password</h4>
+            <input type="password" id="repassword" required>
+
+            <h4>Role</h4>
+            <select id="role" required>
+                <option value="" disabled selected>Choose role</option>
+                <option value="Admin">Admin</option>
+                <option value="Kasir">Kasir</option>
+            </select>
+
+            <button type="submit">Daftar</button>
+            <p><b>Sudah Punya akun? <a href="index.html">Login</a></b></p>
+        </form>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5046/api/v1';
+
+        function showToast(message, type = 'error') {
+            const colors = { success: '#1d83d4', error: '#f84131', info: '#005499' };
+            const t = document.createElement('div');
+            t.style.cssText = `
+                position: fixed; top: 20px; right: 20px;
+                padding: 12px 20px; background: ${colors[type] || colors.info};
+                color: white; border-radius: 8px; font-weight: bold;
+                font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 9999; max-width: 350px;
+            `;
+            t.textContent = message;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        const form = document.getElementById("loginForm");
+
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const username = document.getElementById("username").value.trim();
+            const fullName = document.getElementById("full_name").value.trim();
+            const password = document.getElementById("password").value;
+            // Perhatikan: di HTML ada 2 input id="password" — ini SALAH.
+            // Kita perbaiki dulu di HTML (lihat catatan di bawah).
+            const rePassword = document.getElementById("repassword").value;
+            const role = document.getElementById("role").value;
+
+            // Validasi frontend
+            if (!username || !fullName || !password || !rePassword || !role) {
+                showToast('Semua field wajib diisi.');
+                return;
+            }
+
+            if (password !== rePassword) {
+                showToast('Password dan Re-Password tidak sama.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username,
+                        fullName,
+                        password,
+                        rePassword,
+                        role
+                    })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.message || 'Registrasi gagal');
+                }
+
+                const result = await res.json();
+                showToast(`Registrasi berhasil! ID: ${result.idUser}`, 'success');
+
+                setTimeout(() => window.location.href = 'index.html', 1000);
+
+            } catch (err) {
+                showToast(err.message);
+            }
+        });
+    </script>
+
+</body>
+</html>
