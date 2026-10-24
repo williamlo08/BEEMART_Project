@@ -1,4 +1,4 @@
-BEEMART
+# BEEMART
 
 Aplikasi Point of Sales (POS) berbasis web yang dirancang untuk memenuhi kebutuhan kasir dan admin dalam mengelola transaksi penjualan secara efisien. Project ini dibangun menggunakan arsitektur **Client-Server** di mana Frontend (HTML/JS) berkomunikasi dengan Backend (ASP.NET Core API) melalui HTTP Request.
 
