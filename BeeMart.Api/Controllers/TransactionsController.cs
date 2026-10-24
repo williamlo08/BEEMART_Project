@@ -13,9 +13,7 @@ public class TransactionsController : ControllerBase
     private readonly AppDbContext _db;
     public TransactionsController(AppDbContext db) => _db = db;
 
-    // ============================================================
-    // POST: simpan transaksi
-    // ============================================================
+    
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTransactionRequest req)
     {
@@ -37,7 +35,7 @@ public class TransactionsController : ControllerBase
         if (products.Count != productIds.Count)
             return BadRequest(new { message = "Ada produk yang tidak ditemukan." });
 
-        // Hitung total & validasi qty
+        
         decimal total = 0;
         var details = new List<TrTransactionDetail>();
         var now = DateTime.Now;
@@ -76,13 +74,13 @@ public class TransactionsController : ControllerBase
             total += subTotal;
         }
 
-        // Generate InvoiceNo: [5 digit userID][ddmmyy][3 digit running number]
+        
         var prefix = $"{req.IdUser}{now:ddMMyy}";
         var countToday = await _db.TrTransactions.CountAsync(t => t.InvoiceNo.StartsWith(prefix));
         var running = (countToday + 1).ToString("D3");
         var invoiceNo = $"{prefix}{running}";
 
-        // Antisipasi bentrok (race condition)
+        
         while (await _db.TrTransactions.AnyAsync(t => t.InvoiceNo == invoiceNo))
         {
             countToday++;
@@ -116,11 +114,7 @@ public class TransactionsController : ControllerBase
         });
     }
 
-        // ============================================================
-    // GET: history dengan pagination (max 20)
-    // - Kalau idUser diisi → filter by user (untuk kasir)
-    // - Kalau idUser kosong → tampilkan semua (untuk admin)
-    // ============================================================
+        
     [HttpGet]
     public async Task<IActionResult> History(
         [FromQuery] string? date,
@@ -138,13 +132,13 @@ public class TransactionsController : ControllerBase
             .Include(t => t.Details)
             .Where(t => t.Stsrc);
 
-        // Filter by user (kalau dikirim dari frontend kasir)
+        
         if (!string.IsNullOrWhiteSpace(idUser))
         {
             q = q.Where(t => t.IdUser == idUser);
         }
 
-        // Filter by date
+        
         if (!string.IsNullOrWhiteSpace(date) && DateTime.TryParse(date, out var dt))
         {
             var start = dt.Date;

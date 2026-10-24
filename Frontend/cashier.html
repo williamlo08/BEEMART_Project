@@ -15,13 +15,13 @@
         </div>
     </nav>
     <div class="kotak">
-        <!-- Tab Switch -->
+        
         <div class="tab-switch">
             <button class="tab-btn active" id="tabNew" onclick="switchTab('new')">New Transaction</button>
             <button class="tab-btn" id="tabHistory" onclick="switchTab('history')">History Transaction</button>
         </div>
 
-        <!-- Konten New Transaction -->
+    
         <div id="contentNew">
             <div class="invoice-row">
                 <span class="invoice-label">Invoice No:</span>
@@ -37,7 +37,7 @@
 
             <div class="produk-list" id="produkList"></div>
 
-            <!-- Panel pilih qty (muncul saat klik Pilih) -->
+            
             <div id="panelPilih" class="panel-pilih" style="display:none;"></div>
 
             <div class="daftar-belanja">
@@ -60,7 +60,7 @@
             <button class="bayar-btn" onclick="bayar()">Submit Transaksi</button>
         </div>
 
-        <!-- Konten History Transaction -->
+        
         <div id="contentHistory" style="display:none;">
             <div class="history-header">
                 <p class="history-title">Pencarian Data Transaksi <span class="history-kasir" id="labelKasir">(Kasir: -)</span></p>
@@ -81,10 +81,10 @@
         </div>
     </div>
     <script>
-        // ===== Konfigurasi API =====
+        
         const API_BASE = 'http://localhost:5046/api/v1';
 
-        // ===== Ambil user yang login dari localStorage =====
+        
         function getCurrentUser() {
             const raw = localStorage.getItem('currentUser');
             if (!raw) return null;
@@ -93,13 +93,13 @@
 
         const currentUser = getCurrentUser();
         if (!currentUser) {
-            // Belum login → redirect ke halaman login
+            
             window.location.href = 'index.html';
         }
 
         const CURRENT_USER_ID = currentUser ? currentUser.idUser : null;
 
-        // Tampilkan nama kasir di header history
+        
         document.addEventListener('DOMContentLoaded', () => {
             const labelKasir = document.getElementById('labelKasir');
             if (labelKasir && currentUser) {
@@ -107,13 +107,13 @@
             }
         });
 
-        // ===== Logout =====
+        
         function logout() {
             localStorage.removeItem('currentUser');
             window.location.href = 'index.html';
         }
 
-        // ===== Toast (pengganti alert) =====
+        
         function showToast(message, type = 'info') {
             const colors = {
                 success: '#1d83d4',
@@ -144,19 +144,18 @@
             }, 3000);
         }
 
-        // ===== Tanggal realtime di navbar =====
-        // ===== Update Tampilan Kanan Atas (Dinamis) =====
+        
         function updateHeader() {
             const header = document.getElementById('headerInfo');
             if (!currentUser || !header) return;
 
-            // Cek tab mana yang sedang aktif
+            
             const isHistoryTab = document.getElementById('tabHistory').classList.contains('active');
 
             if (isHistoryTab) {
                 header.innerHTML = `Role : <span style="color: #e6e36a; font-weight: bold;">${currentUser.role}</span> | Login : ${currentUser.fullName}`;
             } else {
-                // Tampilan saat di tab New Transaction (Dengan Jam)
+                
                 const sekarang = new Date();
                 const tanggal = String(sekarang.getDate()).padStart(2, '0');
                 const bulan = String(sekarang.getMonth() + 1).padStart(2, '0');
@@ -164,21 +163,21 @@
                 const jam = String(sekarang.getHours()).padStart(2, '0');
                 const menit = String(sekarang.getMinutes()).padStart(2, '0');
                 
-                // Format: 24/10/2025, 10:35 | Kasir : (Nama)
+                
                 header.textContent = `${tanggal}/${bulan}/${tahun}, ${jam}:${menit} | ${currentUser.role} : ${currentUser.fullName}`;
             }
         }
 
-        // Jalankan jamnya setiap detik (hanya akan berdetak jika di tab New)
+        
         setInterval(updateHeader, 1000);
         updateHeader();
 
-        // ===== State =====
+        
         let produkData = [];
         let cart = [];
         let produkDipilih = null;
 
-        // ===== Ambil metode pembayaran dari API =====
+        
         async function loadPaymentMethods() {
             try {
                 const res = await fetch(`${API_BASE}/payment-methods`);
@@ -193,7 +192,7 @@
             }
         }
 
-        // ===== Tab Switch =====
+        
         function switchTab(tab) {
             const newContent = document.getElementById('contentNew');
             const historyContent = document.getElementById('contentHistory');
@@ -213,11 +212,11 @@
                 renderHistory();
             }
             
-            // TAMBAHKAN BARIS INI:
+            
             updateHeader(); 
         }
 
-        // ===== Render tabel produk =====
+        
         function renderTabelProduk(filtered) {
             const list = document.getElementById('produkList');
 
@@ -256,7 +255,7 @@
             `;
         }
 
-        // ===== Cari produk via API =====
+        
         async function cariProduk() {
             const keyword = document.getElementById('searchInput').value.trim();
             const list = document.getElementById('produkList');
@@ -277,7 +276,7 @@
             }
         }
 
-        // ===== Pilih produk → panel qty =====
+        
         function pilihProduk(idProduct) {
             const produk = produkData.find(p => p.idProduct === idProduct);
             if (!produk) return;
@@ -324,7 +323,7 @@
             if (inp) inp.focus();
         }
 
-        // ===== Masukkan ke cart =====
+        
         function masukkanKeCart() {
             if (!produkDipilih) return;
 
@@ -365,7 +364,7 @@
             renderCart();
         }
 
-        // ===== Render cart =====
+        
         function renderCart() {
             const cartList = document.getElementById('cartList');
 
@@ -409,13 +408,13 @@
             document.getElementById('totalHarga').textContent = `Rp ${total.toLocaleString('id-ID')}`;
         }
 
-        // ===== Hapus dari cart =====
+        
         function hapusDariCart(idProduct) {
             cart = cart.filter(c => c.idProduct !== idProduct);
             renderCart();
         }
 
-        // ===== Bayar =====
+        
         async function bayar() {
             if (cart.length === 0) {
                 showToast('Daftar belanja masih kosong!', 'error');
@@ -465,12 +464,12 @@
             }
         }
 
-        // ===== Pagination state =====
+        
         const HISTORY_PER_PAGE = 20;
         let historyPage = 1;
         let historyFilterAktif = '';
 
-        // ===== Render history dari API =====
+
         async function renderHistory(filterTanggal) {
             const historyList = document.getElementById('historyList');
             const pagination = document.getElementById('historyPagination');
@@ -494,7 +493,7 @@
                 url.searchParams.set('page', historyPage);
                 url.searchParams.set('pageSize', HISTORY_PER_PAGE);
                 if (dateParam) url.searchParams.set('date', dateParam);
-            // Kasir: hanya transaksi miliknya sendiri
+
                 if (currentUser && currentUser.role === 'Kasir') {
                     url.searchParams.set('idUser', currentUser.idUser);
                 }
@@ -559,7 +558,7 @@
             }
         }
 
-        // ===== Render pagination =====
+        
         function renderPagination(totalHalaman, currentPage) {
             const pagination = document.getElementById('historyPagination');
 
@@ -619,7 +618,7 @@
             renderHistory(tgl);
         }
 
-        // ===== Sinkronisasi tanggal & init =====
+        
         document.addEventListener('DOMContentLoaded', function () {
             const txt = document.getElementById('filterTanggal');
             const pick = document.getElementById('filterTanggalPicker');
@@ -638,7 +637,7 @@
             loadPaymentMethods();
         });
 
-        // ===== Init =====
+        
         document.getElementById('produkList').innerHTML = '';
         document.getElementById('invoiceNo').textContent = '-';
         renderCart();
