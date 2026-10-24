@@ -63,12 +63,9 @@
             const username = document.getElementById("username").value.trim();
             const fullName = document.getElementById("full_name").value.trim();
             const password = document.getElementById("password").value;
-            // Perhatikan: di HTML ada 2 input id="password" — ini SALAH.
-            // Kita perbaiki dulu di HTML (lihat catatan di bawah).
             const rePassword = document.getElementById("repassword").value;
             const role = document.getElementById("role").value;
 
-            // Validasi frontend
             if (!username || !fullName || !password || !rePassword || !role) {
                 showToast('Semua field wajib diisi.');
                 return;
