@@ -10,7 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Konfigurasi Swagger agar bisa input Token
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "BeeMart API", Version = "v1" });
@@ -37,7 +36,6 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
-// Konfigurasi JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "DefaultKeyIfMissingKurangPanjang123!";
 var key = Encoding.ASCII.GetBytes(jwtKey);
 
@@ -76,7 +74,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("fe");
-app.UseAuthentication(); // WAJIB ADA SEBELUM AUTHORIZATION
+app.UseAuthentication(); 
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

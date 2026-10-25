@@ -10,16 +10,13 @@ namespace BeeMart.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/transactions")]
-[Authorize] // WAJIB LOGIN UNTUK AKSES ENDPOINT INI
+[Authorize] 
 public class TransactionsController : ControllerBase
 {
     private readonly AppDbContext _db;
     public TransactionsController(AppDbContext db) => _db = db;
 
-    // ============================================================
-    // GET: Mendapatkan preview nomor invoice selanjutnya
-    // (Agar Invoice muncul di layar sebelum transaksi dilakukan)
-    // ============================================================
+
     [HttpGet("next-invoice")]
     public async Task<IActionResult> GetNextInvoice()
     {
@@ -34,13 +31,11 @@ public class TransactionsController : ControllerBase
         return Ok(new { invoiceNo });
     }
 
-    // ============================================================
-    // POST: Simpan transaksi
-    // ============================================================
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTransactionRequest req)
     {
-        // Ambil IdUser dari Token JWT, bukan dari body request (Anti Curang)
+
         var idUser = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (idUser == null) return Unauthorized();
 
@@ -60,11 +55,11 @@ public class TransactionsController : ControllerBase
                 var p = await _db.MsProducts.FirstOrDefaultAsync(x => x.IdProduct == item.IdProduct && x.Stsrc);
                 if (p == null) return BadRequest(new { message = "Produk tidak ditemukan." });
 
-                // Cek stok (Atomic Lock via Transaction)
+
                 if (p.Stock < item.Qty) 
                     return BadRequest(new { message = $"Stok {p.Name} tidak mencukupi." });
 
-                p.Stock -= item.Qty; // Kurangi stok
+                p.Stock -= item.Qty; 
 
                 var subTotal = p.Price * item.Qty * (1 - p.Discount / 100m);
                 details.Add(new TrTransactionDetail
@@ -81,7 +76,7 @@ public class TransactionsController : ControllerBase
                 total += subTotal;
             }
 
-            // FORMAT INVOICE: [5 digit userID][ddmmyy][3 digit running number]
+
             var prefix = $"{idUser}{now:ddMMyy}";
             var countToday = await _db.TrTransactions.CountAsync(t => t.InvoiceNo.StartsWith(prefix));
             var invoiceNo = $"{prefix}{(countToday + 1).ToString("D3")}";
@@ -112,9 +107,7 @@ public class TransactionsController : ControllerBase
         }
     }
 
-    // ============================================================
-    // GET: History Transaksi (dengan Pagination)
-    // ============================================================
+
     [HttpGet]
     public async Task<IActionResult> History([FromQuery] string? date, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
@@ -129,13 +122,13 @@ public class TransactionsController : ControllerBase
             .Include(t => t.User).Include(t => t.PaymentMethod).Include(t => t.Details)
             .Where(t => t.Stsrc);
 
-        // RESTRICTION: Jika yang login Cashier, filter hanya milik dia
+
         if (role == "Cashier")
         {
             q = q.Where(t => t.IdUser == myId);
         }
 
-        // Filter by date
+
         if (!string.IsNullOrWhiteSpace(date) && DateTime.TryParse(date, out var dt))
         {
             var start = dt.Date;
@@ -151,7 +144,7 @@ public class TransactionsController : ControllerBase
                 IdTransaction = t.IdTransaction,
                 InvoiceNo = t.InvoiceNo,
                 TransactionDate = t.TransactionDate,
-                // Admin ditampilkan "Admin", Cashier ditampilkan namanya
+
                 Kasir = t.User != null && t.User.Role == "Admin" ? "Admin" : (t.User != null ? t.User.Username : "-"),
                 PaymentMethod = t.PaymentMethod != null ? t.PaymentMethod.MethodName : "-",
                 TotalPrice = t.TotalPrice,
