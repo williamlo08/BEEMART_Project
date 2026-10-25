@@ -21,11 +21,10 @@
             <button class="tab-btn" id="tabHistory" onclick="switchTab('history')">History Transaction</button>
         </div>
 
-    
         <div id="contentNew">
             <div class="invoice-row">
                 <span class="invoice-label">Invoice No:</span>
-                <span class="invoice-no" id="invoiceNo">-</span>
+                <span class="invoice-no" id="invoiceNo">Memuat...</span>
             </div>
             <div class="text-cari">
                 <p style="font-size:14px">Cari Barang (Ketik: Apel / Susu, lalu tekan enter)</p>
@@ -37,7 +36,6 @@
 
             <div class="produk-list" id="produkList"></div>
 
-            
             <div id="panelPilih" class="panel-pilih" style="display:none;"></div>
 
             <div class="daftar-belanja">
@@ -53,14 +51,12 @@
             </div>
             <div class="metode-row">
                 <label for="metodePembayaran" class="metode-label">Metode Pembayaran:</label>
-                <select id="metodePembayaran" class="metode-select">
-                </select>
+                <select id="metodePembayaran" class="metode-select"></select>
             </div>
 
             <button class="bayar-btn" onclick="bayar()">Submit Transaksi</button>
         </div>
 
-        
         <div id="contentHistory" style="display:none;">
             <div class="history-header">
                 <p class="history-title">Pencarian Data Transaksi <span class="history-kasir" id="labelKasir">(Kasir: -)</span></p>
@@ -69,7 +65,6 @@
                     <div class="history-date-wrap">
                         <input type="text" id="filterTanggal" class="history-date-input" placeholder="dd / mm / yyyy">
                         <input type="date" id="filterTanggalPicker" class="history-date-picker">
-                        <span class="history-cal-icon" onclick="document.getElementById('filterTanggalPicker').showPicker ? document.getElementById('filterTanggalPicker').showPicker() : document.getElementById('filterTanggalPicker').click()">📅</span>
                     </div>
                     <button class="history-cari-btn" onclick="cariHistory()">Cari Data</button>
                 </div>
@@ -81,118 +76,97 @@
         </div>
     </div>
     <script>
-        
         const API_BASE = 'http://localhost:5046/api/v1';
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-        
-        function getCurrentUser() {
-            const raw = localStorage.getItem('currentUser');
-            if (!raw) return null;
-            try { return JSON.parse(raw); } catch { return null; }
-        }
-
-        const currentUser = getCurrentUser();
-        if (!currentUser) {
-            
+        if (!currentUser || !currentUser.token) {
             window.location.href = 'index.html';
+        } else {
+            if (currentUser.role !== 'Cashier') {
+                alert("Akses Ditolak: Halaman ini hanya untuk Kasir!");
+                window.location.href = 'admin.html';
+            }
         }
 
-        const CURRENT_USER_ID = currentUser ? currentUser.idUser : null;
+        const authHeaders = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.token}`
+        };
 
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            const labelKasir = document.getElementById('labelKasir');
-            if (labelKasir && currentUser) {
-                labelKasir.textContent = `(Kasir: ${currentUser.fullName})`;
+        function showToast(message, type = 'info') {
+            const colors = { success: '#1d83d4', error: '#f84131', info: '#005499' };
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; top: 20px; right: 20px; padding: 12px 20px;
+                background: ${colors[type] || colors.info}; color: white; border-radius: 8px;
+                font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 9999; max-width: 350px; transition: opacity 0.3s;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        function updateHeader() {
+            const header = document.getElementById('headerInfo');
+            if (!currentUser || !header) return;
+
+            const isHistoryTab = document.getElementById('tabHistory').classList.contains('active');
+            header.innerHTML = ''; 
+
+            if (isHistoryTab) {
+                const spanRole = document.createElement('span');
+                spanRole.innerHTML = `Role : <span style="color: #FFD700; font-weight: bold;">${currentUser.role}</span> | Login : `;
+                const spanName = document.createElement('span');
+                spanName.textContent = currentUser.username; 
+                
+                header.appendChild(spanRole);
+                header.appendChild(spanName);
+            } else {
+                const sekarang = new Date();
+                const tgl = `${String(sekarang.getDate()).padStart(2, '0')}/${String(sekarang.getMonth() + 1).padStart(2, '0')}/${sekarang.getFullYear()}`;
+                const jam = `${String(sekarang.getHours()).padStart(2, '0')}:${String(sekarang.getMinutes()).padStart(2, '0')}:${String(sekarang.getSeconds()).padStart(2, '0')}`;
+                
+                header.textContent = `${tgl}, ${jam} | ${currentUser.role} : ${currentUser.username}`;
             }
-        });
-
+        }
         
+        setInterval(updateHeader, 1000);
+        updateHeader();
+
         function logout() {
             localStorage.removeItem('currentUser');
             window.location.href = 'index.html';
         }
 
-        
-        function showToast(message, type = 'info') {
-            const colors = {
-                success: '#1d83d4',
-                error: '#f84131',
-                info: '#005499'
-            };
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 12px 20px;
-                background: ${colors[type] || colors.info};
-                color: white;
-                border-radius: 8px;
-                font-weight: bold;
-                font-size: 14px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                z-index: 9999;
-                max-width: 350px;
-            `;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.3s';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        
-        function updateHeader() {
-            const header = document.getElementById('headerInfo');
-            if (!currentUser || !header) return;
-
-            
-            const isHistoryTab = document.getElementById('tabHistory').classList.contains('active');
-
-            if (isHistoryTab) {
-                header.innerHTML = `Role : <span style="color: #e6e36a; font-weight: bold;">${currentUser.role}</span> | Login : ${currentUser.fullName}`;
-            } else {
-                
-                const sekarang = new Date();
-                const tanggal = String(sekarang.getDate()).padStart(2, '0');
-                const bulan = String(sekarang.getMonth() + 1).padStart(2, '0');
-                const tahun = sekarang.getFullYear();
-                const jam = String(sekarang.getHours()).padStart(2, '0');
-                const menit = String(sekarang.getMinutes()).padStart(2, '0');
-                
-                
-                header.textContent = `${tanggal}/${bulan}/${tahun}, ${jam}:${menit} | ${currentUser.role} : ${currentUser.fullName}`;
-            }
-        }
-
-        
-        setInterval(updateHeader, 1000);
-        updateHeader();
-
-        
         let produkData = [];
         let cart = [];
         let produkDipilih = null;
 
-        
-        async function loadPaymentMethods() {
+        async function loadNextInvoice() {
             try {
-                const res = await fetch(`${API_BASE}/payment-methods`);
-                if (!res.ok) throw new Error('Gagal memuat metode pembayaran');
-                const methods = await res.json();
-                const select = document.getElementById('metodePembayaran');
-                select.innerHTML = methods.map(m =>
-                    `<option value="${m.idPaymentMethod}">${m.methodName}</option>`
-                ).join('');
-            } catch (err) {
-                showToast(err.message, 'error');
+                const res = await fetch(`${API_BASE}/transactions/next-invoice`, { headers: authHeaders });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('invoiceNo').textContent = data.invoiceNo;
+                }
+            } catch (err) { 
+                console.error('Gagal load invoice', err); 
+                document.getElementById('invoiceNo').textContent = 'Gagal memuat';
             }
         }
 
-        
+        async function loadPaymentMethods() {
+            try {
+                const res = await fetch(`${API_BASE}/payment-methods`, { headers: authHeaders });
+                if (!res.ok) throw new Error('Gagal memuat metode pembayaran');
+                const methods = await res.json();
+                document.getElementById('metodePembayaran').innerHTML = methods.map(m =>
+                    `<option value="${m.idPaymentMethod}">${m.methodName}</option>`
+                ).join('');
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
         function switchTab(tab) {
             const newContent = document.getElementById('contentNew');
             const historyContent = document.getElementById('contentHistory');
@@ -200,29 +174,22 @@
             const tabHistory = document.getElementById('tabHistory');
 
             if (tab === 'new') {
-                newContent.style.display = 'block';
-                historyContent.style.display = 'none';
-                tabNew.classList.add('active');
-                tabHistory.classList.remove('active');
+                newContent.style.display = 'block'; historyContent.style.display = 'none';
+                tabNew.classList.add('active'); tabHistory.classList.remove('active');
             } else {
-                newContent.style.display = 'none';
-                historyContent.style.display = 'block';
-                tabNew.classList.remove('active');
-                tabHistory.classList.add('active');
-                renderHistory();
+                newContent.style.display = 'none'; historyContent.style.display = 'block';
+                tabNew.classList.remove('active'); tabHistory.classList.add('active');
+
+                document.getElementById('historyList').innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted); font-style: italic;">Silakan pilih tanggal atau ketik tanggal, lalu klik "Cari Data".</div>';
+                document.getElementById('historyPagination').innerHTML = '';
             }
-            
-            
-            updateHeader(); 
+            updateHeader();
         }
 
-        
         function renderTabelProduk(filtered) {
             const list = document.getElementById('produkList');
-
             if (filtered.length === 0) {
-                list.innerHTML = '<p class="empty-cart">Barang tidak ditemukan.</p>';
-                return;
+                list.innerHTML = '<p class="empty-cart">Barang tidak ditemukan.</p>'; return;
             }
 
             const rows = filtered.map(p => `
@@ -238,35 +205,24 @@
 
             list.innerHTML = `
                 <table style="width:100%;border-collapse:collapse;font-size:14px;border:1px solid var(--blue);">
-                    <thead>
-                        <tr style="background:#e4f2fd;color:#1d83d4;">
-                            <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Nama Barang</th>
-                            <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Berat</th>
-                            <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Stock</th>
-                            <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Harga</th>
-                            <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Diskon</th>
-                            <th style="padding:8px;text-align:center;border:1px solid var(--blue);">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rows}
-                    </tbody>
-                </table>
-            `;
+                    <thead><tr style="background:#e4f2fd;color:#1d83d4;">
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Nama Barang</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Berat</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Stock</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Harga</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Diskon</th>
+                        <th style="padding:8px;text-align:center;border:1px solid var(--blue);">Aksi</th>
+                    </tr></thead><tbody>${rows}</tbody>
+                </table>`;
         }
 
-        
         async function cariProduk() {
             const keyword = document.getElementById('searchInput').value.trim();
             const list = document.getElementById('produkList');
-
-            if (keyword === '') {
-                list.innerHTML = '';
-                return;
-            }
+            if (keyword === '') { list.innerHTML = ''; return; }
 
             try {
-                const res = await fetch(`${API_BASE}/products?search=${encodeURIComponent(keyword)}&limit=10`);
+                const res = await fetch(`${API_BASE}/products?search=${encodeURIComponent(keyword)}&limit=10`, { headers: authHeaders });
                 if (!res.ok) throw new Error('Gagal memuat produk');
                 produkData = await res.json();
                 renderTabelProduk(produkData);
@@ -276,20 +232,14 @@
             }
         }
 
-        
         function pilihProduk(idProduct) {
             const produk = produkData.find(p => p.idProduct === idProduct);
             if (!produk) return;
-
             produkDipilih = produk;
-
             const diCart = cart.find(c => c.idProduct === idProduct);
             const sisaStock = produk.stock - (diCart ? diCart.qty : 0);
 
-            if (sisaStock <= 0) {
-                showToast(`Stock ${produk.name} habis atau sudah semua di keranjang.`, 'error');
-                return;
-            }
+            if (sisaStock <= 0) { showToast(`Stok habis.`, 'error'); return; }
 
             const panel = document.getElementById('panelPilih');
             panel.style.display = 'block';
@@ -310,182 +260,115 @@
                         </div>
                         <div class="panel-kanan">
                             <div class="panel-qty-row">
-                                <label class="panel-label" for="inputQty">QTY:</label>
+                                <label class="panel-label">QTY:</label>
                                 <input type="number" id="inputQty" class="input-qty" min="1" max="${sisaStock}" value="1">
                                 <button class="btn-masukkan" onclick="masukkanKeCart()">Masukkan Keranjang</button>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
-
-            const inp = document.getElementById('inputQty');
-            if (inp) inp.focus();
+                </div>`;
+            document.getElementById('inputQty').focus();
         }
 
-        
         function masukkanKeCart() {
             if (!produkDipilih) return;
-
-            const inputQty = document.getElementById('inputQty');
-            let qty = parseInt(inputQty.value, 10);
-
-            if (isNaN(qty) || qty < 1) {
-                showToast('Qty minimal 1!', 'error');
-                return;
-            }
+            const qty = parseInt(document.getElementById('inputQty').value, 10);
+            if (isNaN(qty) || qty < 1) { showToast('Qty minimal 1!', 'error'); return; }
 
             const diCart = cart.find(c => c.idProduct === produkDipilih.idProduct);
-            const sudahAda = diCart ? diCart.qty : 0;
-            const sisaStock = produkDipilih.stock - sudahAda;
+            const sisaStock = produkDipilih.stock - (diCart ? diCart.qty : 0);
+            if (qty > sisaStock) { showToast(`Sisa stok hanya ${sisaStock}!`, 'error'); return; }
 
-            if (qty > sisaStock) {
-                showToast(`Sisa stock hanya ${sisaStock}!`, 'error');
-                return;
-            }
-
-            if (diCart) {
-                diCart.qty += qty;
-            } else {
-                cart.push({
-                    idProduct: produkDipilih.idProduct,
-                    name: produkDipilih.name,
-                    price: produkDipilih.price,
-                    discount: produkDipilih.discount,
-                    qty: qty
-                });
-            }
+            if (diCart) { diCart.qty += qty; } 
+            else { cart.push({ ...produkDipilih, qty: qty }); }
 
             produkDipilih = null;
-            const panel = document.getElementById('panelPilih');
-            panel.style.display = 'none';
-            panel.innerHTML = '';
-
+            document.getElementById('panelPilih').style.display = 'none';
             renderCart();
         }
 
-        
         function renderCart() {
             const cartList = document.getElementById('cartList');
-
             if (cart.length === 0) {
                 cartList.innerHTML = '<p class="empty-cart">Belum ada barang dipilih.</p>';
             } else {
                 const rows = cart.map(c => {
                     const subtotal = c.price * c.qty * (1 - c.discount / 100);
-                    return `
-                        <tr>
-                            <td style="padding:8px;text-align:left;border:1px solid var(--blue);">${c.name}</td>
-                            <td style="padding:8px;text-align:left;border:1px solid var(--blue);">Rp ${c.price.toLocaleString('id-ID')}</td>
-                            <td style="padding:8px;text-align:left;border:1px solid var(--blue);">${c.discount}%</td>
-                            <td style="padding:8px;text-align:left;border:1px solid var(--blue);">${c.qty}</td>
-                            <td style="padding:8px;text-align:left;border:1px solid var(--blue);">Rp ${subtotal.toLocaleString('id-ID')}</td>
-                            <td style="padding:8px;text-align:center;border:1px solid var(--blue);"><button class="hapus-btn" onclick="hapusDariCart('${c.idProduct}')">Hapus</button></td>
-                        </tr>
-                    `;
+                    return `<tr>
+                        <td style="padding:8px;border:1px solid var(--blue);">${c.name}</td>
+                        <td style="padding:8px;border:1px solid var(--blue);">Rp ${c.price.toLocaleString('id-ID')}</td>
+                        <td style="padding:8px;border:1px solid var(--blue);">${c.discount}%</td>
+                        <td style="padding:8px;border:1px solid var(--blue);">${c.qty}</td>
+                        <td style="padding:8px;border:1px solid var(--blue);">Rp ${subtotal.toLocaleString('id-ID')}</td>
+                        <td style="padding:8px;text-align:center;border:1px solid var(--blue);"><button class="hapus-btn" onclick="hapusDariCart('${c.idProduct}')">Hapus</button></td>
+                    </tr>`;
                 }).join('');
-
-                cartList.innerHTML = `
-                    <table style="width:100%;border-collapse:collapse;font-size:14px;border:1px solid var(--blue);">
-                        <thead>
-                            <tr style="background:#e4f2fd;color:#1d83d4;">
-                                <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Nama Barang</th>
-                                <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Harga</th>
-                                <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Diskon</th>
-                                <th style="padding:8px;text-align:left;border:1px solid var(--blue);">QTY</th>
-                                <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Subtotal</th>
-                                <th style="padding:8px;text-align:center;border:1px solid var(--blue);">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rows}
-                        </tbody>
-                    </table>
-                `;
+                cartList.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:14px;border:1px solid var(--blue);">
+                    <thead><tr style="background:#e4f2fd;color:#1d83d4;">
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Nama Barang</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Harga</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Diskon</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">QTY</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Subtotal</th>
+                        <th style="padding:8px;text-align:center;border:1px solid var(--blue);">Aksi</th>
+                    </tr></thead><tbody>${rows}</tbody></table>`;
             }
-
             const total = cart.reduce((sum, c) => sum + c.price * c.qty * (1 - c.discount / 100), 0);
             document.getElementById('totalHarga').textContent = `Rp ${total.toLocaleString('id-ID')}`;
         }
 
-        
         function hapusDariCart(idProduct) {
             cart = cart.filter(c => c.idProduct !== idProduct);
             renderCart();
         }
 
-        
         async function bayar() {
-            if (cart.length === 0) {
-                showToast('Daftar belanja masih kosong!', 'error');
-                return;
-            }
-
+            if (cart.length === 0) { showToast('Daftar belanja masih kosong!', 'error'); return; }
             if (!confirm('Yakin ingin memproses transaksi ini?')) return;
 
-            const metode = parseInt(document.getElementById('metodePembayaran').value, 10);
-
             const payload = {
-                idUser: CURRENT_USER_ID,
-                idPaymentMethod: metode,
-                items: cart.map(c => ({
-                    idProduct: c.idProduct,
-                    qty: c.qty
-                }))
+                idPaymentMethod: parseInt(document.getElementById('metodePembayaran').value, 10),
+                items: cart.map(c => ({ idProduct: c.idProduct, qty: c.qty }))
             };
 
             try {
                 const res = await fetch(`${API_BASE}/transactions`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: authHeaders,
                     body: JSON.stringify(payload)
                 });
-
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({}));
-                    throw new Error(err.message || 'Transaksi gagal diproses');
-                }
-
                 const result = await res.json();
+                if (!res.ok) throw new Error(result.message || 'Transaksi gagal');
 
-                showToast(`Transaksi berhasil! Invoice: ${result.invoiceNo}`, 'success');
-
+                showToast(`Berhasil! Invoice: ${result.invoiceNo}`, 'success');
                 cart = [];
-                produkDipilih = null;
-                document.getElementById('panelPilih').style.display = 'none';
-                document.getElementById('panelPilih').innerHTML = '';
                 renderCart();
                 document.getElementById('searchInput').value = '';
                 document.getElementById('produkList').innerHTML = '';
+                
                 document.getElementById('invoiceNo').textContent = result.invoiceNo;
-
+                
+                setTimeout(loadNextInvoice, 2000);
             } catch (err) {
                 showToast(err.message, 'error');
             }
         }
 
-        
         const HISTORY_PER_PAGE = 20;
         let historyPage = 1;
         let historyFilterAktif = '';
-
 
         async function renderHistory(filterTanggal) {
             const historyList = document.getElementById('historyList');
             const pagination = document.getElementById('historyPagination');
 
-            if (filterTanggal !== undefined) {
-                historyFilterAktif = filterTanggal;
-                historyPage = 1;
-            }
+            if (filterTanggal !== undefined) { historyFilterAktif = filterTanggal; historyPage = 1; }
 
             let dateParam = '';
             if (historyFilterAktif && historyFilterAktif.trim() !== '') {
                 const clean = historyFilterAktif.replace(/\s/g, '').replace(/-/g, '/');
                 const parts = clean.split('/');
-                if (parts.length === 3) {
-                    dateParam = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
+                if (parts.length === 3) dateParam = `${parts[2]}-${parts[1]}-${parts[0]}`;
             }
 
             try {
@@ -494,119 +377,57 @@
                 url.searchParams.set('pageSize', HISTORY_PER_PAGE);
                 if (dateParam) url.searchParams.set('date', dateParam);
 
-                if (currentUser && currentUser.role === 'Kasir') {
-                    url.searchParams.set('idUser', currentUser.idUser);
-                }
-
-                const res = await fetch(url);
-                if (!res.ok) throw new Error('Gagal memuat history');
+                const res = await fetch(url, { headers: authHeaders });
                 const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Gagal memuat history');
 
                 if (!data.items || data.items.length === 0) {
-                    historyList.innerHTML = '<p class="empty-cart">Belum ada transaksi.</p>';
-                    pagination.innerHTML = '';
+                    historyList.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted); font-style: italic;">Tidak ada transaksi pada tanggal tersebut.</div>';
+                    pagination.innerHTML = ''; 
                     return;
                 }
 
                 const rows = data.items.map(r => {
                     const tgl = new Date(r.transactionDate);
-                    const dd = String(tgl.getDate()).padStart(2, '0');
-                    const mm = String(tgl.getMonth() + 1).padStart(2, '0');
-                    const yyyy = tgl.getFullYear();
-                    const hh = String(tgl.getHours()).padStart(2, '0');
-                    const mi = String(tgl.getMinutes()).padStart(2, '0');
-                    const waktu = `${dd}-${mm}-${yyyy} ${hh}:${mi}`;
+                    const waktu = `${String(tgl.getDate()).padStart(2, '0')}-${String(tgl.getMonth() + 1).padStart(2, '0')}-${tgl.getFullYear()} ${String(tgl.getHours()).padStart(2, '0')}:${String(tgl.getMinutes()).padStart(2, '0')}`;
+                    const safeKasir = new Option(r.kasir).innerHTML; 
 
-                    return `
-                        <tr>
-                            <td style="padding:8px;text-align:left;border:1px solid var(--blue);">${r.invoiceNo}</td>
-                            <td style="padding:8px;text-align:left;border:1px solid var(--blue);">${waktu}</td>
-                            <td style="padding:8px;text-align:left;border:1px solid var(--blue);">${r.kasir || '-'}</td>
-                            <td style="padding:8px;text-align:left;border:1px solid var(--blue);">${r.totalItems}</td>
-                            <td style="padding:8px;text-align:left;border:1px solid var(--blue);">${r.paymentMethod || '-'}</td>
-                            <td style="padding:8px;text-align:left;border:1px solid var(--blue);">Rp ${r.totalPrice.toLocaleString('id-ID')}</td>
-                        </tr>
-                    `;
+                    return `<tr>
+                        <td style="padding:8px;border:1px solid var(--blue);">${r.invoiceNo}</td>
+                        <td style="padding:8px;border:1px solid var(--blue);">${waktu}</td>
+                        <td style="padding:8px;border:1px solid var(--blue);">${safeKasir}</td>
+                        <td style="padding:8px;border:1px solid var(--blue);">${r.totalItems}</td>
+                        <td style="padding:8px;border:1px solid var(--blue);">${r.paymentMethod}</td>
+                        <td style="padding:8px;border:1px solid var(--blue);">Rp ${r.totalPrice.toLocaleString('id-ID')}</td>
+                    </tr>`;
                 }).join('');
 
-                historyList.innerHTML = `
-                    <div class="history-table-wrap">
-                        <table style="width:100%;border-collapse:collapse;font-size:14px;border:1px solid var(--blue);">
-                            <thead>
-                                <tr style="background:#e4f2fd;color:#1d83d4;">
-                                    <th style="padding:8px;text-align:left;border:1px solid var(--blue);">No. Transaksi</th>
-                                    <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Tanggal &amp; Jam</th>
-                                    <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Kasir</th>
-                                    <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Jml Item</th>
-                                    <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Pembayaran</th>
-                                    <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Total Harga</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${rows}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-
+                historyList.innerHTML = `<div class="history-table-wrap"><table style="width:100%;border-collapse:collapse;font-size:14px;border:1px solid var(--blue);">
+                    <thead><tr style="background:#e4f2fd;color:#1d83d4;">
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">No. Transaksi</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Tanggal &amp; Jam</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Kasir</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Jml Item</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Pembayaran</th>
+                        <th style="padding:8px;text-align:left;border:1px solid var(--blue);">Total Harga</th>
+                    </tr></thead><tbody>${rows}</tbody></table></div>`;
                 renderPagination(data.totalPages, data.currentPage);
-
             } catch (err) {
                 showToast(err.message, 'error');
-                historyList.innerHTML = '<p class="empty-cart">Gagal memuat history.</p>';
+                historyList.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--danger); font-style: italic;">Gagal memuat data. Pastikan format tanggal benar.</div>';
                 pagination.innerHTML = '';
             }
         }
 
-        
         function renderPagination(totalHalaman, currentPage) {
             const pagination = document.getElementById('historyPagination');
-
-            if (totalHalaman < 1) {
-                pagination.innerHTML = '';
-                return;
-            }
-
+            if (totalHalaman < 1) { pagination.innerHTML = ''; return; }
             let html = '';
-
-            if (totalHalaman <= 9) {
-                for (let i = 1; i <= totalHalaman; i++) {
-                    html += `<button class="${i === currentPage ? 'active' : ''}" onclick="gotoHistoryPage(${i})">${i}</button>`;
-                }
-            } else {
-                for (let i = 1; i <= 8; i++) {
-                    html += `<button class="${i === currentPage ? 'active' : ''}" onclick="gotoHistoryPage(${i})">${i}</button>`;
-                }
-
-                html += `
-                    <div class="page-more" id="pageMore">
-                        <button class="page-more-btn" onclick="togglePageMore(event)">...</button>
-                        <div class="page-more-menu" id="pageMoreMenu">
-                            ${Array.from({ length: totalHalaman - 8 }, (_, k) => {
-                                const n = k + 9;
-                                return `<button class="${n === currentPage ? 'active' : ''}" onclick="gotoHistoryPage(${n})">${n}</button>`;
-                            }).join('')}
-                        </div>
-                    </div>
-                `;
+            for (let i = 1; i <= totalHalaman; i++) {
+                html += `<button class="${i === currentPage ? 'active' : ''}" onclick="gotoHistoryPage(${i})">${i}</button>`;
             }
-
             pagination.innerHTML = html;
         }
-
-        function togglePageMore(e) {
-            e.stopPropagation();
-            const menu = document.getElementById('pageMoreMenu');
-            if (menu) menu.classList.toggle('show');
-        }
-
-        document.addEventListener('click', function (e) {
-            const more = document.getElementById('pageMore');
-            const menu = document.getElementById('pageMoreMenu');
-            if (more && menu && !more.contains(e.target)) {
-                menu.classList.remove('show');
-            }
-        });
 
         function gotoHistoryPage(page) {
             historyPage = page;
@@ -614,34 +435,51 @@
         }
 
         function cariHistory() {
-            const tgl = document.getElementById('filterTanggal').value;
-            renderHistory(tgl);
+            const tglInput = document.getElementById('filterTanggal').value.trim();
+            
+            if (tglInput === '') {
+                renderHistory('');
+                return;
+            }
+
+            const parts = tglInput.replace(/\s/g, '').split('/');
+            
+            if (parts.length !== 3 || parts[0].length !== 2 || parts[1].length !== 2 || parts[2].length !== 4) {
+                showToast('Format tanggal salah! Gunakan format: dd / mm / yyyy (contoh: 23 / 10 / 2026)', 'error');
+                return; 
+            }
+
+            const d = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1; 
+            const y = parseInt(parts[2], 10);
+            
+            const dateObj = new Date(y, m, d);
+            if (dateObj.getFullYear() !== y || dateObj.getMonth() !== m || dateObj.getDate() !== d) {
+                showToast('Tanggal tidak valid di kalender!', 'error');
+                return; 
+            }
+
+            renderHistory(tglInput);
         }
 
-        
         document.addEventListener('DOMContentLoaded', function () {
-            const txt = document.getElementById('filterTanggal');
             const pick = document.getElementById('filterTanggalPicker');
-
             if (pick) {
                 pick.addEventListener('change', function () {
                     if (!pick.value) return;
                     const d = new Date(pick.value);
-                    const dd = String(d.getDate()).padStart(2, '0');
-                    const mm = String(d.getMonth() + 1).padStart(2, '0');
-                    const yyyy = d.getFullYear();
-                    txt.value = `${dd} / ${mm} / ${yyyy}`;
+                    document.getElementById('filterTanggal').value = `${String(d.getDate()).padStart(2, '0')} / ${String(d.getMonth() + 1).padStart(2, '0')} / ${d.getFullYear()}`;
                 });
             }
-
             loadPaymentMethods();
+            loadNextInvoice();
         });
-
         
-        document.getElementById('produkList').innerHTML = '';
-        document.getElementById('invoiceNo').textContent = '-';
-        renderCart();
+        const labelKasir = document.getElementById('labelKasir');
+        if (labelKasir && currentUser) labelKasir.innerHTML = `<i>(Hanya Kasir : ${currentUser.username})</i>`;
 
+        document.getElementById('produkList').innerHTML = '';
+        renderCart();
     </script>
 </body>
 </html>

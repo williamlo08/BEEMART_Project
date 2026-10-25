@@ -23,7 +23,7 @@
             <select id="role" required>
                 <option value="" disabled selected>Choose role</option>
                 <option value="Admin">Admin</option>
-                <option value="Kasir">Kasir</option>
+                <option value="Cashier">Kasir</option>
             </select>
 
             <button type="submit">Login</button>
@@ -31,81 +31,45 @@
         </form>
     </div>
 
-    <script>
-        const API_BASE = 'http://localhost:5046/api/v1';
+<script>
+    const API_BASE = 'http://localhost:5046/api/v1';
 
-        function showToast(message, type = 'error') {
-            const colors = { success: '#1d83d4', error: '#f84131', info: '#005499' };
-            const t = document.createElement('div');
-            t.style.cssText = `
-                position: fixed; top: 20px; right: 20px;
-                padding: 12px 20px; background: ${colors[type] || colors.info};
-                color: white; border-radius: 8px; font-weight: bold;
-                font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                z-index: 9999; max-width: 350px;
-            `;
-            t.textContent = message;
-            document.body.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
+    function showToast(message, type = 'error') {
+        const colors = { success: '#1d83d4', error: '#f84131', info: '#005499' };
+        const t = document.createElement('div');
+        t.style.cssText = `position:fixed;top:20px;right:20px;padding:12px 20px;background:${colors[type]};color:white;border-radius:8px;font-weight:bold;z-index:9999;`;
+        t.textContent = message;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+        const role = document.getElementById("role").value; // Pastikan value di HTML adalah "Admin" dan "Cashier"
+
+        try {
+            const res = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, role })
+            });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.message || 'Invalid login');
+
+            // Simpan Token & Data User
+            localStorage.setItem('currentUser', JSON.stringify(data));
+            showToast(`Selamat datang, ${data.fullName}`, 'success');
+            
+            setTimeout(() => {
+                window.location.href = data.role === 'Cashier' ? 'cashier.html' : 'admin.html';
+            }, 700);
+        } catch (err) {
+            showToast(err.message);
         }
-
-        const form = document.getElementById("loginForm");
-
-        form.addEventListener("submit", async function(event) {
-            event.preventDefault();
-
-            const username = document.getElementById("username").value.trim();
-            const password = document.getElementById("password").value;
-            const role = document.getElementById("role").value;
-
-            if (!username || !password || !role) {
-                showToast('Username, Password, dan Role wajib diisi.');
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, role })
-                });
-
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({}));
-                    throw new Error(err.message || 'Invalid login');
-                }
-
-                const user = await res.json();
-
-                // Simpan user login
-                localStorage.setItem('currentUser', JSON.stringify(user));
-
-                showToast(`Selamat datang, ${user.fullName}`, 'success');
-
-                // Redirect sesuai role
-                setTimeout(() => {
-                    if (user.role === 'Kasir') {
-                        window.location.href = 'cashier.html';
-                    } else if (user.role === 'Admin') {
-                        window.location.href = 'admin.html';
-                    }
-                }, 700);
-
-            } catch (err) {
-                showToast(err.message);
-            }
-        });
-
-        // Kalau sudah login, redirect otomatis
-        const existing = localStorage.getItem('currentUser');
-        if (existing) {
-            try {
-                const u = JSON.parse(existing);
-                if (u.role === 'Kasir') window.location.href = 'cashier.html';
-                else if (u.role === 'Admin') window.location.href = 'admin.html';
-            } catch {}
-        }
-    </script>
-
+    });
+</script>
 </body>
 </html>

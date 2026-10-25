@@ -104,7 +104,7 @@ VALUES
 
 INSERT INTO [MsUser] ([IdUser], [Username], [FullName], [PasswordHash], [Role], [Stsrc], [Datein], [Userin]) 
 VALUES 
-    ('U0001', 'kasir1', 'Kasir Satu', '$2a$11$W2wB2Z2v3O5Xk7J4z1Y8e.W6c4D9q2L5T8s7H1j0K3m6N9p2Q5r8S', 'Kasir', 1, GETDATE(), 'SYSTEM'),
+    ('U0001', 'kasir1', 'Kasir Satu', '$2a$11$W2wB2Z2v3O5Xk7J4z1Y8e.W6c4D9q2L5T8s7H1j0K3m6N9p2Q5r8S', 'Cashier', 1, GETDATE(), 'SYSTEM'),
     ('U0002', 'admin1', 'Admin Satu', '$2a$11$W2wB2Z2v3O5Xk7J4z1Y8e.W6c4D9q2L5T8s7H1j0K3m6N9p2Q5r8S', 'Admin', 1, GETDATE(), 'SYSTEM');
 
 INSERT INTO [MsProduct] 
